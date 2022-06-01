@@ -3,7 +3,7 @@ import kotlin.random.Random
 
 val flashcards = mutableMapOf<String,String>()
 val cardsAndErrors = mutableMapOf<Pair<String,String>,Int>()
-val log = mutableListOf<String>()
+val logger = Logger()
 var importFileName = ""
 var exportFileName = ""
 
@@ -18,24 +18,24 @@ fun <K, V> getKey(map: Map<K, V>, target: V): K? {
 }
 
 fun addNCard(index: Int){
-    logOutput("Card #$index:")
-    var newTerm = logInput()
+    logger.logOutput("Card #$index:")
+    var newTerm = logger.logInput()
     if(flashcards.containsKey(newTerm)) {
         var unique = false
         while (!unique) {
-            logOutput("The term \"$newTerm\" already exists. Try again:")
-            newTerm = logInput()
+            logger.logOutput("The term \"$newTerm\" already exists. Try again:")
+            newTerm = logger.logInput()
             if(!flashcards.containsKey(newTerm))
                 unique = true
         }
     }
-    logOutput("The definition for card #$index:")
-    var newDefinition = logInput()
+    logger.logOutput("The definition for card #$index:")
+    var newDefinition = logger.logInput()
     if(flashcards.containsValue(newDefinition)){
         var unique = false
         while (!unique) {
-            logOutput("The definition \"$newDefinition\" already exists. Try again:")
-            newDefinition = logInput()
+            logger.logOutput("The definition \"$newDefinition\" already exists. Try again:")
+            newDefinition = logger.logInput()
             if(!flashcards.containsValue(newDefinition))
                 unique = true
         }
@@ -44,29 +44,29 @@ fun addNCard(index: Int){
 }
 
 fun addCard(){
-    logOutput("Card :")
-    var newTerm = logInput()
+    logger.logOutput("Card :")
+    var newTerm = logger.logInput()
     if(flashcards.containsKey(newTerm)) {
         var unique = false
         while (!unique) {
-            logOutput("The card \"$newTerm\" already exists.")
+            logger.logOutput("The card \"$newTerm\" already exists.")
             return
             /*
-            newTerm = logInput()
+            newTerm = logger.logInput()
             if(!flashcards.containsKey(newTerm))
                 unique = true
              */
         }
     }
-    logOutput("The definition of the card:")
-    var newDefinition = logInput()
+    logger.logOutput("The definition of the card:")
+    var newDefinition = logger.logInput()
     if(flashcards.containsValue(newDefinition)){
         var unique = false
         while (!unique) {
-            logOutput("The definition \"$newDefinition\" already exists.")
+            logger.logOutput("The definition \"$newDefinition\" already exists.")
             return
             /*
-            newDefinition = logInput()
+            newDefinition = logger.logInput()
             if(!flashcards.containsValue(newDefinition))
                 unique = true
              */
@@ -75,27 +75,27 @@ fun addCard(){
 
     flashcards[newTerm] = newDefinition
     cardsAndErrors[Pair(newTerm, flashcards[newTerm]!!)] = 0
-    logOutput("The pair (\"$newTerm\":\"$newDefinition\") has been added.")
+    logger.logOutput("The pair (\"$newTerm\":\"$newDefinition\") has been added.")
 }
 
 fun removeCard() {
-    logOutput("Which card?")
-    val term = logInput()
+    logger.logOutput("Which card?")
+    val term = logger.logInput()
     if(flashcards.containsKey(term)){
         cardsAndErrors.remove(Pair(term, flashcards[term]))
         flashcards -= term
-        logOutput("The card has been removed.")
+        logger.logOutput("The card has been removed.")
     }
     else{
-        logOutput("Can't remove \"$term\": there is no such card.")
+        logger.logOutput("Can't remove \"$term\": there is no such card.")
     }
 }
 
 fun importCards(){
     var fileName = importFileName
     if(importFileName.isEmpty()) {
-        logOutput("File name:")
-        fileName = logInput()
+        logger.logOutput("File name:")
+        fileName = logger.logInput()
     }
     val file = File(fileName)
     if(file.exists()){
@@ -114,42 +114,42 @@ fun importCards(){
                 cardsAndErrors[Pair(term, flashcards[term]!!)] = errors.toInt()
             }
         }
-        logOutput("${lines.size} cards have been loaded.")
+        logger.logOutput("${lines.size} cards have been loaded.")
 
-    } else logOutput("File not found.")
+    } else logger.logOutput("File not found.")
 
 }
 
 fun exportCards(exiting: Boolean = false){
     var fileName = exportFileName
     if(exportFileName.isEmpty() && !exiting) {
-        logOutput("File name:")
-        fileName = logInput()
+        logger.logOutput("File name:")
+        fileName = logger.logInput()
     }
     val file = File(fileName)
     //val cards = flashcards.entries.joinToString(separator = "\n")
     val cardsAndErrors = cardsAndErrors.entries.joinToString(separator = "\n")
     if(file.exists() || fileName.isNotEmpty()) {
         file.writeText(cardsAndErrors)
-        logOutput("${flashcards.size} cards have been saved.")
+        logger.logOutput("${flashcards.size} cards have been saved.")
     }
 }
 
 fun askCard(){
-    logOutput("How many times to ask?")
-    val numOfCards = logInput().toInt()
+    logger.logOutput("How many times to ask?")
+    val numOfCards = logger.logInput().toInt()
     for(i in 1..numOfCards){
         val random = Random.nextInt(0, flashcards.size)
         var index = 0
         for (entry in flashcards) {
             if (index == random){
-                logOutput("Print the definition of \"${entry.key}\":")
-                var answer = logInput()
+                logger.logOutput("Print the definition of \"${entry.key}\":")
+                var answer = logger.logInput()
                 if(answer == entry.value){
-                    logOutput("Correct!")
+                    logger.logOutput("Correct!")
                 }
                 else{
-                    logOutput("Wrong. The right answer is \"${entry.value}\", " +
+                    logger.logOutput("Wrong. The right answer is \"${entry.value}\", " +
                             "but your definition is correct for \"${getKey(flashcards,answer)}\".")
                     val newErrorCount = cardsAndErrors[Pair(entry.key,entry.value)]?.plus(1)
                     if (newErrorCount != null) {
@@ -163,25 +163,6 @@ fun askCard(){
     }
 }
 
-fun logInput(): String{
-    val string = readln()
-    log.add(string)
-    return string
-}
-
-fun logOutput(str: String){
-    log.add(str)
-    println(str)
-}
-
-fun saveLog(){
-    logOutput("File name:")
-    val fileName = logInput()
-    val file = File(fileName)
-    val exportableLog = log.joinToString(separator = "\n")
-    file.writeText(exportableLog)
-    logOutput("The log has been saved.")
-}
 
 fun hardestCardFunc(){
     var highest = 0
@@ -191,7 +172,7 @@ fun hardestCardFunc(){
         }
     }
     if (highest == 0) {
-        logOutput("There are no cards with errors.")
+        logger.logOutput("There are no cards with errors.")
         return
     }
     else{
@@ -202,11 +183,11 @@ fun hardestCardFunc(){
             }
         }
         if (hardestCards.size > 1){
-            logOutput("The hardest cards are ${hardestCards.joinToString(separator = ", ")}. " +
+            logger.logOutput("The hardest cards are ${hardestCards.joinToString(separator = ", ")}. " +
                     "You have $highest errors answering them.")
         }
         else{
-            logOutput("The hardest card is ${hardestCards.joinToString()}. You have $highest errors answering it.")
+            logger.logOutput("The hardest card is ${hardestCards.joinToString()}. You have $highest errors answering it.")
         }
     }
 }
@@ -215,7 +196,7 @@ fun resetStats(){
     for (entry in cardsAndErrors){
         entry.setValue(0)
     }
-    logOutput("Card statistics have been reset.")
+    logger.logOutput("Card statistics have been reset.")
 }
 
 fun initApp(args: Array<String>){
@@ -254,8 +235,8 @@ fun main(args: Array<String>) {
     var exit = false
 
     while(!exit) {
-        logOutput("Input the action (add, remove, import, export, ask, exit, log, hardest card, reset stats):")
-        when(logInput()){
+        logger.logOutput("Input the action (add, remove, import, export, ask, exit, log, hardest card, reset stats):")
+        when(logger.logInput()){
             "add" -> addCard()
             "remove" -> removeCard()
             "import" -> importCards()
@@ -263,14 +244,14 @@ fun main(args: Array<String>) {
             "ask" -> askCard()
             "exit" -> {
                 exit = true
-                logOutput("Bye bye!")
+                logger.logOutput("Bye bye!")
                 exportCards(exiting = true)
             }
-            "log" -> saveLog()
+            "log" -> logger.saveLog()
             "hardest card" -> hardestCardFunc()
             "reset stats" -> resetStats()
             else -> {
-                logOutput("Not an action name!")
+                logger.logOutput("Not an action name!")
             }
         }
     }
